@@ -9,6 +9,6 @@ head(type)
 sort(table(unlist(type))) # type distribution
 ``` 
 
-# Skript 1 extracts all tags analysed in the paper
+### Skript 1 extracts all tags analysed in the paper
 
-# Skript 2 reproduces all analyses reported in the paper
+### Skript 2 reproduces all analyses reported in the paper
