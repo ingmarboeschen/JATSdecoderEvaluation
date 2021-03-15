@@ -1,4 +1,4 @@
-## JATSdecoder: Insights to PubMed Central’s Open Access Database (2021).
+## JATSdecoder: Insights to PubMed Central’s Open Access Database (submitted 2021).
 This folder contains follwing materials:
 - Skript 1: extracts and saves all NISO-JATS tags analysed in the paper
 - Skript 2: reproduces all analyses reported in the paper
