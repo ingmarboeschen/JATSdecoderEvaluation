@@ -9,7 +9,7 @@ This folder contains follwing materials:
 ### Import and use the data
 ``` r
 # Download each .rda file and load its content with R for analysis. 
-load("./tags/type.rda")
+load("./tags/type.rda") # adjust to your system
 head(type)
 sort(table(unlist(type))) # type distribution
 ``` 
@@ -27,11 +27,11 @@ library(JATSdecoder)
 library(future.apply)
 # define number of cores for multithreading
 plan(multisession, workers = 60, gc = TRUE)
-# extract desired content
+# extract desired content (takes several hours)
 author<-future_lapply(files,JATSdecoder,output="author")
 keywords<-future_lapply(files,output="keywords")
 text<-future_lapply(files,output="text")
-# save for before further analysis
+# save for further analysis
 save(author,file="author.rda")
 save(keywords,file="keywords.rda")
 text(text,file="text.rda")
