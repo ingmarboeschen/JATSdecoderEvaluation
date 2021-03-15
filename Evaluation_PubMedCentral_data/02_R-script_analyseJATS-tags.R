@@ -444,7 +444,6 @@ max(l) # 121 editors
 i <- which(unlist(lapply(editor, length)) == max(l))
 editor[i]
 title[i]
-doi[i] 
 # -> German Book Infektionserkrankungen, Therapie in der Kinder- und Jugendmedizin, Strategien für Klinik und Praxis (2007), Pages 439-533 
 
 
