@@ -10,18 +10,14 @@
 # clean work space
 rm(list=ls())
 
-# set working directory to folder containing the extracted tags only
-setwd("./PMC/tags") # adjust to your system
-setwd("/home/ingmar/JATSdecoderEvaluation/JATSdecoder/JATSdecoder - Language Resources and Evaluation/tags")
-
-##################
-## Start analysis 
-#################
-
 #################################################
 ### 3.1 Summary and NISO-JATS tag use over time
 ###############################################
-# load all tags extracted data by script '01_extractJATSfromPMC.R' tag-wise
+
+# set working directory to folder containing the extracted tags only
+setwd("./PMC/tags") # adjust to your system
+
+## load all tags extracted data by script '01_extractJATSfromPMC.R' tag-wise
 tags <- list.files(patt = "rda$", full.names = T)
 for(i in 1:length(tags)){
   load(tags[i])

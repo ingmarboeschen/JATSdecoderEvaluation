@@ -9,14 +9,12 @@
 ## PMCs bulk download server: ftp://ftp.ncbi.nlm.nih.gov/pub/pmc/oa_bulk 
 ###########################################################################
 
-# set working directory (folder with NXML files)
-setwd("./PMC/") # adjust to your system
+# folder with NXML files
+folder <- "./PMC/" # adjust to your system
 # XML file names
-files <- paste0(getwd(), "/", list.files(patt = "xml$|XML$", rec = T))
+files <- list.files(folder, patt = "xml$|XML$", rec = T, full.names = T)
 # n files
 length(files)
-# save file names
-save(files, file = "files.rda")
 
 ## total file size
 file.size <- file.size(files)
@@ -30,10 +28,11 @@ totalsize <- round(sum(file.size)/1000000000, 2)
 library(future.apply)
 library(JATSdecoder)
 # define number of cores for multithreading
-plan(multisession, workers = 60, gc = TRUE)
+plan(multisession, workers = 60, gc = TRUE) # adjust to your system
 
 ## for VERY powerfull computers with a lot of RAM (approx. >= 256 Gb)
 JATS<-future_lapply(files,JATSdecoder)
+# save full results
 save(JATS,file="JATS.rda")
 
 ## for still powerfull computers with a lot of RAM (approx. >= 128 Gb)
