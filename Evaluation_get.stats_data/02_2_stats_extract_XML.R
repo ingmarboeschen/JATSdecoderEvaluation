@@ -82,9 +82,9 @@ computableTime
 
 ## extraction of computable results with get.stats(x,etimateZ=T)
 s <- Sys.time()
-estZ <- future_lapply(stats, standardStats, stat = "computable", T2t = T, estimate = T, R2r = T)
-estZTime <- Sys.time()-s
-estZTime
+computableBoost <- future_lapply(stats, standardStats, stat = "computable", T2t = T, estimate = T, R2r = T)
+computableBoostTime <- Sys.time()-s
+computableBoostTime
 
 ## extraction of checkable results with get.stats()
 s <- Sys.time()
@@ -120,7 +120,7 @@ HTMLcheck <- lapply(HTMLcheck, function(x) if(is.element("Reported.P.Value", nam
 ##########
 
 ## extraction times
-timesXML <- c(statsTime, allstandardStatsTime, computableTime, estZTime, checkableTime, checkableBoostTime, checkTime, HTMLtime)
+timesXML <- c(statsTime, allstandardStatsTime, computableTime, computableBoostTime, checkableTime, checkableBoostTime, checkTime, HTMLtime)
 timesXML
  
 ##############################
@@ -130,7 +130,7 @@ timesXML
 n0 <- lapply(stats, length)
 n1 <- lapply(allstandardStats, dim)
 n2 <- lapply(computable, dim)
-n3 <- lapply(estZ, dim)
+n3 <- lapply(computableBoost, dim)
 n4 <- lapply(checkable, dim)
 n5 <- lapply(checkableBoost, dim)
 n6 <- lapply(check, dim)

@@ -56,11 +56,11 @@ computable <- future_lapply(stats, standardStats, stat = "computable", T2t = T, 
 computableTime <- Sys.time()-s
 computableTime
 
-# get all computable stats with estZ = TRUE
+# get all computable stats with estimateZ = TRUE
 s <- Sys.time()
-estZ <- future_lapply(stats, standardStats, stat = "computable", T2t = T, estimate = T, R2r = T)
-estZTime <- Sys.time()-s
-estZTime
+computableBoost <- future_lapply(stats, standardStats, stat = "computable", T2t = T, estimate = T, R2r = T)
+computableBoostTime <- Sys.time()-s
+computableBoostTime
 
 # get all p checkable stats with get.stats(x,T2t=T,R2r=T)
 s <- Sys.time()
@@ -101,7 +101,7 @@ PDFtime
 PDFcheck <- lapply(PDFcheck, function(x) if(is.element("Reported.P.Value", names(x))) x[!is.na(x[, "Reported.P.Value"]), ])
 
 ## extraction times per method
-times <- c(statsTime, allstandardStatsTime, computableTime, estZTime, checkableTime, checkableBoostTime, checkTime, HTMLtime, PDFtime)
+times <- c(statsTime, allstandardStatsTime, computableTime, computableBoostTime, checkableTime, checkableBoostTime, checkTime, HTMLtime, PDFtime)
 times
 
 ############
@@ -112,7 +112,7 @@ times
 n0 <- lapply(stats, length)
 n1 <- lapply(allstandardStats, dim)
 n2 <- lapply(computable, dim)
-n3 <- lapply(estZ, dim)
+n3 <- lapply(computableBoost, dim)
 n4 <- lapply(checkable, dim)
 n5 <- lapply(checkableBoost, dim)
 n6 <- lapply(check, dim)
