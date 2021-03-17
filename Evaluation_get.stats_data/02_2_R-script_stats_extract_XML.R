@@ -20,7 +20,7 @@ plan(multisession, workers = 60, gc = TRUE) # adjust to your system
 ## identify PLoS One file names for analysis
 folder <- "./PMC/comm_use.O-Z.xml/PLoS_One" # adjust to your system
 # PLoS One XML files
-PLoS <- list.files(patt = "xml$", rec = T, full.names = T)
+PLoS <- list.files(folder, patt = "xml$", rec = T, full.names = T)
 # total number of PLoS One articles
 nPLoS <- length(PLoS)
 nPLoS 

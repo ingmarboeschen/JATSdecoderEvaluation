@@ -14,20 +14,20 @@ rm(list = ls())
 library(JATSdecoder)
 library(statcheck)
 library(future.apply)
-plan(multisession, workers = 60, gc = TRUE) # adjust to your system
+plan(multisession, workers = 4, gc = TRUE) # adjust to your system
 
 # set working directory to folder containing native PDF and CERMINE compiled PDF files in CERMXML format
-setwd("./49papersWicherts")
+#setwd("./49papersWicherts")
 #setwd("/home/tower/Verschriftlichung/02_Psychology in PMC/Wicherts/49 papers")
 setwd("/home/ingmar/JATSdecoderEvaluation/get.stats/Wicherts/49papersWicherts")
 
 # create file name vectors for different input formats
 # native PDF
-PDFfiles <- list.files(pattern = "pdf$", rec = T, full.names = T)
+PDFfiles <- list.files(getwd(), pattern = "pdf$", rec = T, full.names = T)
 # CERMINE compiled PDF as CERMXML
-files <- list.files(pattern = "cermxml$", rec = T, full.names = T)
+files <- list.files(getwd(), pattern = "cermxml$", rec = T, full.names = T)
 # browser generated HTML
-HTMLfiles <- list.files(pattern = "html$", rec = T, full.names = T)
+HTMLfiles <- list.files(getwd(), pattern = "html$", rec = T, full.names = T)
 # manually extracted number of sign. t-, F-, chi^2 results by Wicherts et al. 
 # copied from: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0026828
 nStatsWicherts <- c(7,13,33,25,83,30,19,22,9,21,16,10,21,8,8,32,37,11,39,23,46,20,35,30,37,33,15,21,24,27,6,16,23,24,5,29,9,15,20,8,48,28,27,8,7,9,36,45,30)
@@ -84,7 +84,7 @@ MethResStats <- lapply(MethResStats, function(x) gsub("<=>", "=", unlist(x)))
 ## extraction of significant t-, F-, and chi2 results with statcheck()
 statcheckMethRes <- future_lapply(MethResStats, statcheck, stat = c("t", "F", "chisq"))
 # select and count significant results
-statcheckSig <- lapply(statcheckMethRes, function(a) a[a$Reported.P.Value <= .05|a$Computed <= .05, ])
+statcheckSig <- lapply(statcheckMethRes, function(a) a[which(a$Reported.P.Value <= .05|a$Computed <= .05), ])
 statcheckSig <- unlist(lapply(lapply(statcheckSig, nrow), function(x) ifelse(is.null(x), 0, x)))
 # total sign. t-, F-, chi^2-results
 sum(statcheckSig)
@@ -95,7 +95,7 @@ MethResStatsIndex <- lapply(MethResStats, rm.index)
 ## extraction of results from index removed results in method and result sections with statcheck()
 statcheckIndex <- lapply(MethResStatsIndex, statcheck, stat = c("t", "F", "chisq"))
 # select and count significant results
-statcheckIndexSig <- lapply(statcheckIndex, function(a) a[a$Reported.P.Value <= .05|a$Computed <= .05, ])
+statcheckIndexSig <- lapply(statcheckIndex, function(a) a[which(a$Reported.P.Value <= .05|a$Computed <= .05), ])
 statcheckIndexSig <- unlist(lapply(lapply(statcheckIndexSig, nrow), function(x) ifelse(is.null(x), 0, x)))
 # count
 sum(statcheckIndexSig)
@@ -103,7 +103,7 @@ sum(statcheckIndexSig)
 ## extraction of significant t-, F-, and chi2 results with checkHTML()
 HTMLstatcheck <- future_lapply(HTMLfiles, checkHTML, stat = c("t", "F", "chisq"))
 # select and count significant results
-HTMLstatcheckSig <- lapply(HTMLstatcheck, function(a) a[a$Reported.P.Value <= .05|a$Computed <= .05, ])
+HTMLstatcheckSig <- lapply(HTMLstatcheck, function(a) a[which(a$Reported.P.Value <= .05|a$Computed <= .05), ])
 HTMLstatcheckSig <- unlist(lapply(lapply(HTMLstatcheckSig, nrow), function(x) ifelse(is.null(x), 0, x)))
 # count
 sum(HTMLstatcheckSig)
@@ -111,7 +111,7 @@ sum(HTMLstatcheckSig)
 ## extraction of significant t-, F-, and chi2 results with checkPDF()
 PDFstatcheck <- future_lapply(PDFfiles, checkPDF, stat = c("t", "F", "chisq"))
 # select and count significant results
-PDFstatcheckSig <- lapply(PDFstatcheck, function(a) a[a$Reported.P.Value <= .05|a$Computed <= .05, ])
+PDFstatcheckSig <- lapply(PDFstatcheck, function(a) a[which(a$Reported.P.Value <= .05|a$Computed <= .05), ])
 PDFstatcheckSig <- unlist(lapply(lapply(PDFstatcheckSig, nrow), function(x) ifelse(is.null(x), 0, x)))
 # count
 sum(PDFstatcheckSig)

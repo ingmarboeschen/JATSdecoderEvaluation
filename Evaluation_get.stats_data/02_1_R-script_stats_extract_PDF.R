@@ -24,9 +24,11 @@ folder <- "./PDFarticles2020-2021" # adjust to your system
 PDFfiles <- list.files(folder, patt = "pdf$", rec = T, full.names = T)
 files <- list.files(folder, patt = "xml$", rec = T, full.names = T)
 
-# create journal vector
+# create journal vector from file names
 journal <- list.files(folder, patt = "xml$", rec = T)
-journal <- unlist(lapply(strsplit(journal, "/"), "[", 1))
+# extract journal name from 2nd level folder
+journal <- unlist(lapply(strsplit(journal, "/"), "[", 2))
+#journal <- unlist(lapply(strsplit(journal, "/"), "[", )) # select 1st level folder
 journal <- gsub("Journal", "J.", journal)
 journal <- gsub("Bulletin", "Bul.", journal)
 # labels
