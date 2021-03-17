@@ -18,7 +18,7 @@ rm(list=ls())
 setwd("./PMC/tags") # adjust to your system
 
 ## load all tags extracted data by script '01_extractJATSfromPMC.R' tag-wise
-tags <- list.files(patt = "rda$", full.names = T)
+tags <- list.files(setwd(),patt = "rda$", full.names = T)
 for(i in 1:length(tags)){
   load(tags[i])
   # progress

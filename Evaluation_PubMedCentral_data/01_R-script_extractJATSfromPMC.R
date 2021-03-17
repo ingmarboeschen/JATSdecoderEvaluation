@@ -25,8 +25,8 @@ totalsize <- round(sum(file.size)/1000000000, 2)
 ## Extraction of JATS tags with JATSdecoder
 ##########################################
 # load libraries
-library(future.apply)
 library(JATSdecoder)
+library(future.apply)
 # define number of cores for multithreading
 plan(multisession, workers = 60, gc = TRUE) # adjust to your system
 
@@ -54,7 +54,7 @@ rm(JATS)
 print(j);print(Sys.time())
 }
 
-## Merge batches of JATSdecoder results to one file 
+## merge batches of JATSdecoder results to one file 
 # files with batches of results
 d <- grep("JATS_BATCH", list.files(pattern = "rda$"), v = T)
 # empty object
@@ -96,10 +96,10 @@ save(JATS, file = "JATS.rda")
 ## Extract and save each extracted element from object JATS
 load("JATS.rda")
 # create folder to store new files (remove '#' to activate)
-dir.create("tags")
+#dir.create("tags")
 # change working directory
 setwd("./tags")
-# extract content and save as .rda for further analysis
+# extract content and save as .rda files for further analysis
 abstract <- lapply(JATS, "[", "abstract")
 save(abstract, file = "abstract.rda")
 affiliation <- mapply(c, lapply(JATS, "[", "affiliation"))
