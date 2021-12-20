@@ -1,4 +1,5 @@
-## JATSdecoder: Insights to PubMed Central’s Open Access Database (submitted 2021).
+## Böschen, I. (2021) Software review: The JATSdecoder package—extract metadata, abstract and sectioned text from NISO-JATS coded XML documents; Insights to PubMed central’s open access database. Scientometrics. https://doi.org/10.1007/s11192-021-04162-z
+
 This folder contains follwing materials:
 - R script 01: extracts and saves all NISO-JATS tags analysed in the paper
 - R script 02: reproduces all analyses reported in the paper
