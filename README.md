@@ -5,7 +5,10 @@ This repository contains evaluation data and R-scripts for analyses with [JATSde
 - Böschen, I. (submitted) Extraction of methodological study characteristics with JATSdecoder. An evaluation study.
  
 Note: 
+
 A minimal web app to extract statistical results from textual resources with get.stats() is hosted at:
 [https://get-stats.app](https://get-stats.app).
+
+
 An analysis of extracted study characteristics and individual article selection of articles linked in PubMed Centrals database is accessable here:
-[https://scianalyszer.com](https://scianalyszer.com).
+[https://scianalyzer.com](https://scianalyzer.com).
