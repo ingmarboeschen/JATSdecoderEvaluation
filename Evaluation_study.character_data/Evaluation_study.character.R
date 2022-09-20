@@ -1,4 +1,8 @@
 ####################################################################################
+## Script to reproduce the analysis presented in:
+## Evaluation of the extraction of methodical study characteristics with JATSdecoder. 
+## Böschen, I. (2022). 
+####################################################################################
 ## Comparison of study.character()'s output with manually coded data and: 
 ## Blanca, M. J., Alarcón, R. & Bono, R. Current Practices in Data Analysis 
 ## Procedures in Psychology: What Has Changed? Frontiers in Psychology 9 (2018).
@@ -7,21 +11,25 @@
 
 ## install JATSdecoder with devtools
 # devtools::install_git("https://github.com/ingmarboeschen/JATSdecoder")
+# if devtools is not installed, run: install.packages("devtools"); devtools::install_git("https://github.com/ingmarboeschen/JATSdecoder")
 
 ## load packages
-library(JATSdecoder)  # for function which.term()
-library(xtable)
+library(JATSdecoder)
+library(xtable) # or: install.packages("xtable");library(xtable)
+library(wordcloud) # or: install.packages("wordcloud");library(wordcloud)
 
-## set working directory to  folder with data files
-folder<-"./Evaluation_study.character_data"
-setwd(folder)
+## download data files from repository and unpack on your system:
+## https://github.com/ingmarboeschen/JATSdecoderEvaluation/blob/main/Evaluation_study.character_data/data.zip
 
-## import files 
+# set working directory
+setwd("/home/Evaluation_study.character_data/")
+
+## load data 
 # manually coded study characteristics
 data <- read.csv("manualStudyCharacteristics.csv")
 # study.character()'s extractions
 load(file="study.character.rda")
-# alpha error extraction with 'p2alpha=TRUE'
+# alpha level extraction with 'p2alpha=TRUE'
 load(file="p2alphaTRUE.rda") 
 # frequency table of methods by Blanca et al.
 DAP <- read.table("blancaTableDAP.txt",sep="\t",header=T)
@@ -47,19 +55,40 @@ compare <- function(x,y,sums=FALSE){
     }
 }
 
+## function to detect false detection rates by level of output
+falseDetections<-function(a,b,names,type="FP"){
+  if(is.null(names)&type=="FP") names<-unique(unlist(a))
+  if(is.null(names)&type=="FN") names<-unique(unlist(b))
+  names<-gsub("\\(|\\[|\\)|\\]","",names)
+  res<-NULL
+  for(i in 1:length(names)){
+    # is name[i] present in a
+    aTrue<-unlist(lapply(a, function(x) length(grep(paste0("^",names[i],"$"),gsub("\\(|\\[|\\)|\\]","",x)))>0))
+    # is name[i] present in a
+    bTrue<-unlist(lapply(b, function(x) length(grep(paste0("^",names[i],"$"),gsub("\\(|\\[|\\)|\\]","",x)))>0))
+    if(type=="FP") res[i]<-sum(aTrue&!bTrue)
+    if(type=="FN") res[i]<-sum(!aTrue&bTrue)
+  }
+  names(res)<-names
+  return(res)
+}
 
-# identify and remove duplicated article
-i <- which(duplicated(unlist(lapply(character,"[","title"))))
-i
+##########################################
+## identify and remove duplicated article
+########################################
+i <- which(duplicated(unlist(lapply(character,"[","title"))));i
 data <- data[-i,]
 character <- character[-i]
 p2alpha <- p2alpha[-i]
 
-###############################################################################
-## compare specific methods/tests used (table 4 in Blanca et al.)
-###############################################################################
+#############################################################################
+## compare statistical methods/tests extracted with Table 4 in Blanca et al.
+############################################################################
 # extracted methods by get. method()
 method <- mapply(c,lapply(character,"[","methods"))
+
+## Table 2. Number of articles with mentions of specific statistical methods extracted with study.character 
+##          and frequency of main analytical methods reported in Blanca et al.’s TABLE 4
 
 # 1. Block: general methods
 # define search patterns
@@ -147,19 +176,19 @@ colnames(test_other) <- names_other
 
 cbind(study.character=colSums(test_other))
 
-## final table
+# merge to final table
 # get.method()'s hits
 test_total <- cbind(test_1,test_reg,test_sem,test_other)
 cbind(study.character=colSums(test_total))
 
-# comparison with table 4 by Blanca et al.
+# add comparison with Table 4 by Blanca et al.
 res <- colSums(test_total)
 dat <- data.frame(searchterm=paste0("'",names(res),"'"),Blanca=DAP[,2],study.character=colSums(test_total),difference=colSums(test_total)-DAP[,2],check.names=F)
 rownames(dat) <- DAP[,1]
 dat
 print(xtable(dat,digit=0,rownames=F))
 
-## methods of same, less and more often identifications by get.method()
+## methods that are the same, less and more often extracted by get.method()
 # same often
 sum((dat[,"difference"])==0) 
 rownames(dat)[(dat[,"difference"])==0]
@@ -170,8 +199,7 @@ rownames(dat)[(dat[,"difference"])<0]
 sum((dat[,"difference"])>0) 
 rownames(dat)[(dat[,"difference"])>0]
 
-## word cloud of extracted methods by get.method()
-library(wordcloud)
+## Figure 1. Word cloud of the extracted statistical methods by study.character
 meth<-table(unlist(method))
 par(mar=c(0,0,0,0))
 wordcloud(names(meth),meth)
@@ -179,14 +207,14 @@ wordcloud(names(meth),meth)
 
 #################################################################################ä##
 ## Sensitivity, specifity and accuracy analysis of extracted study characteristics
-##############################################################################
+#################################################################################
 
-# empty result table
+# empty object for Table 3. Sensitivity, specificity and accuracy of study.character’s extractions
 res <- data.frame()
 
-############################################################
-## compare alphas from CI
-############################################################
+####################################
+## alphas from confidence intervals
+##################################
 # extract from study.character() result
 alphaJATSci <- mapply(c,lapply(mapply(c,lapply(character,"[","alpha_error")),"[","alpha_from_CI"))
 alphaJATSci <- lapply(alphaJATSci,sort)
@@ -200,28 +228,58 @@ compare(alphaJATSci,alphaCI_hand,sums=T)
 res <- rbind(res,c("alpha error from CI",compare(alphaJATSci,alphaCI_hand,sums=T)))
 colnames(res) <- c("feature","CP","CN","FP","FN")
 
-# tabulated comparison
+## Table 4. Absolute frequencies of detected α-level from 1-α confidence intervals
 tab <- cbind(table(unlist(alphaJATSci)),table(unlist(alphaCI_hand)))
 colnames(tab) <- c("study.character()","manual coding")
 tab
+tab<-cbind(tab,"false positive"=falseDetections(alphaJATSci,alphaCI_hand,names=rownames(tab),type="FP"))
+tab<-cbind(tab,"false negative"=falseDetections(alphaJATSci,alphaCI_hand,names=rownames(tab),type="FN"))
+tab
 xtable(addmargins(tab,m=1),dig=0)
+
+# analyse false negatives
+a<-compare(alphaJATSci,alphaCI_hand,sums=F)
+i<-which(a$FN>0);i
+data$file[i]
+# 3: 95% CI in table column 
+# 26: 95% CI in table column 
+# 43: "confidence intervals set to .95"
+# 75: 90% CI RMSEA in table column
+# 120: 95% in Discussion
+# 151: 95% CI in table column 
+# 162: 95% CI in table column 
+# 165: 95% CI in figure caption
+# 166: 95% CI in table column 
+# 167: 95% CI in table column 
+# 187: "95% confidence area" 
+# 192: 95% CI in figure caption
+# 196: 95% CI in figure caption
+# 202: 95% CI in figure caption and y-axis label 
+# 207: 95% CI in table column 
+# 210: 95% CI in figure caption
+# 217: 95% CI in table column 
+# 235: 95% CI in reported within table 
+# 249: 95% CI in table column and table note
+# 268: 95% CI in figure caption
+# 286: 95% CI in figure caption
+
 
 # distribution of 1-alpha CIs per article
 table(unlist(lapply(alphaJATSci,length)))
 table(unlist(lapply(alphaCI_hand,length)))
 
-# total CI values to detect: 127
+# total CI values to detect: 126
 sum(compare(alphaJATSci,alphaCI_hand)$CP+compare(alphaJATSci,alphaCI_hand)$FN)
-# in n artcicles with CI: 119
+# in n artcicles with CI: 118
 sum(compare(alphaJATSci,alphaCI_hand,sums=F)$CP>0|compare(alphaJATSci,alphaCI_hand,sums=F)$FN>0)
-# detected ci values: 106
+# detected ci values: 105
 sum(compare(alphaJATSci,alphaCI_hand)$CP)
-# in n articles: 98
+# in n articles: 97
 sum(compare(alphaJATSci,alphaCI_hand,sums=F)$CP>0)
 
-##########################################################
-## compare alpha error dete´ctions
-# first with p2alpha than without p2alpha conversion
+#########################
+## alpha level from text
+# first without p2alpha than with p2alpha conversion
 for(pASalpha in c(FALSE,TRUE)){
   # alpha from study.character()
   if(pASalpha==FALSE){
@@ -259,25 +317,18 @@ for(pASalpha in c(FALSE,TRUE)){
   #############################################################################
   # analyse collapsed alpha and alpha corrected (not included to result table)
   alphas <- lapply(lapply(1:length(alphaJATS), function(x) c(unlist(alphaJATS[x]),unlist(alphaJATScorr[x]))),as.numeric)
-  
   l <- unique(c(names(table(unlist(alphas)))),names(table(unlist(alphasHand))))
   tab <- cbind(table(factor(unlist(alphas),l)),table(factor(unlist(alphasHand),l)))
   colnames(tab) <- c("study.character()","manual coding")
   tab <- addmargins(tab,m=1)
   print(xtable::xtable(tab,dig=0))
-  
-  ## add hit statistic to result table
-  # if(pASalpha==FALSE) res <- rbind(res,c("max of nominal and corrected $\alpha$-error (p2alpha=FALSE)",compare(alphas,alphasHand,sums=T)))
-  # if(pASalpha==TRUE) res <- rbind(res,c("max of nominal and corrected $\alpha$-error (p2alpha=TRUE)",compare(alphas,alphasHand,sums=T)))
 }
-
-res
 
 # n detections corrected alpha
 sum(unlist(lapply(corrected_alpha_hand, is.na))==0)
 sum(unlist(lapply(alphaJATScorr, is.na))==0)
 
-#################################################
+####################################
 ## compare highest corrected alphas
 l <- unique(c(names(table(unlist(alphaJATScorr))),names(table(unlist(corrected_alpha_hand)))))
 l <- sort(as.numeric(l))
@@ -309,37 +360,39 @@ for(pASalpha in c(FALSE,TRUE)){
   alphaallminman[alphaallminman==-Inf] <- NA
   
   ## add hit statistic to result table
-  if(pASalpha==FALSE) res <- res <- rbind(res,c("max of $alpha$-error and CI (p2alpha=FALSE)*",compare(alphaallmax,alphaallmaxman,sums=T)))
-  if(pASalpha==TRUE) res <- res <- rbind(res,c("max of $alpha$-error and CI (p2alpha=TRUE)",compare(alphaallmax,alphaallmaxman,sums=T)))
-  #if(pASalpha==FALSE) res <- res <- rbind(res,c("min of $\alpha$-error and CI (p2alpha=FALSE)",compare(alphaallmin,alphaallminman,sums=T)))
-  #if(pASalpha==TRUE) res <- res <- rbind(res,c("min of $\alpha$-error and CI (p2alpha=TRUE)",compare(alphaallmin,alphaallminman,sums=T)))
-  
-  # tabulated comparison
+  if(pASalpha==FALSE) res <- res <- rbind(res,c("max of $alpha$-level and CI (p2alpha=FALSE)",compare(alphaallmax,alphaallmaxman,sums=T)))
+  if(pASalpha==TRUE) res <- res <- rbind(res,c("max of $alpha$-level and CI (p2alpha=TRUE)*",compare(alphaallmax,alphaallmaxman,sums=T)))
+
+## Table 5. Distribution of extracted maximum α-level with option ‘p2alpha’ deactivated and in default mode (numbers in brackets)
   lev <- sort(as.numeric(names(table(c(alphaallmaxman,alphaallmax)))))
   tab_hand <- table(factor(alphaallmaxman,lev))
   tab_JATS <- table(factor(alphaallmax,lev))
   
-  if(pASalpha==TRUE) m2 <- cbind(m,addmargins(tab_JATS))
-  
   m <- cbind(tab_JATS,tab_hand)
   colnames(m) <- c("study.character()","manual analysis")
+  m<-cbind(m,"false positive"=falseDetections(alphaallmax,alphaallmaxman,names=rownames(m),type="FP"))
+  m<-cbind(m,"false negative"=falseDetections(alphaallmax,alphaallmaxman,names=rownames(m),type="FN"))
+  
   print(paste("p2alpha =",pASalpha))
   m <- addmargins(m,m=1)
   print(m)
+  if(pASalpha==FALSE) m1 <- m
+  
 }
 
-# merge frequencies 
-m2[,1] <- paste0(m2[,1]," (",m2[,3],")")
-m2 <- m2[,-3]
+# merge frequencies of m1 and m
+m1[,1] <- paste0(m1[,1]," (",m[,1],")")
+m1[,3] <- paste0(m1[,3]," (",m[,3],")")
+m1[,4] <- paste0(m1[,4]," (",m[,4],")")
 
 # result table
-m2
-xtable(m2)
+m1
+xtable(m1)
 
 
-############################################################
+#########
 ## Power
-############################################################
+#######
 # from study.character()
 power <- mapply(c,mapply(c,lapply(character,"[","power")))
 power_obs <- mapply(c,lapply(mapply(c,lapply(character,"[","power")),"[","observed_power"))
@@ -372,9 +425,10 @@ sum(a$CP[(a$CP+a$FN)>0]==(a$CP+a$FN)[(a$CP+a$FN)>0]) # 37
 # with n false positives
 sum(a$FP) # 2
 
-# false negatives
+# extractions with false negatives
 i <- which(compare(powerall,powerallhand)$FN>0);i
 powerall[compare(powerall,powerallhand)$FN>0]
+# from manual coding
 powerallhand[compare(powerall,powerallhand)$FN>0]
 
 # n articles with non detections
@@ -388,11 +442,12 @@ length(unlist(powerall[i]))
 # in n articles
 sum(unlist(lapply(powerall[i],length))>0)
 
-# 175 power = 80
+# false negatives
 # 87 the power to detect an effect size in the present study (partial ␩ 2 ⫽ .14) at ␣ ⫽ .05 level with a sample size of 32 was .93.
 # 87 the power to detect an effect size in the present study (partial ␩ 2 ⫽ .14) at ␣ ⫽ .05 level with a sample size of 56 was .99. 
 # 115 The statistical power was very high (0.99),
 # 115 in figure caption: , R = .39; effect size (f ), .64; power, 1 (without competitive victimhood, R = .38; effect size (f ), 0.62; power, 1).
+# 175 power = 80
 # 187 acceptable test power to detect large effect sizes (Cohen’s f ⫽ 0.40, with medium correlations among measurements, r ⫽ .30) for both main effects (age group: 1-␤ ⫽AGE, POSTURAL SWAY, AND VIMS 0.83, driving condition: 1-␤ ⫽ 0.97) and their interaction (1-␤ ⫽ 0.97).
 # 192 but because of the power in the experiment (the achieved power for the interaction was only 0.46).
 # 197 showed that the final sample size ensured sufficient power (i.e., 0.99)
@@ -404,13 +459,14 @@ sum(unlist(lapply(powerall[i],length))>0)
 # false positives
 i <- which(compare(powerall,powerallhand)$FP>0);i
 powerall[compare(powerall,powerallhand)$FP>0]
+# from manual coding
 powerallhand[compare(powerall,powerallhand)$FP>0]
-
 
 # 111: Cohen (1988) recommends conducting studies that have an 80% probability of detecting the effect when the effect is present (i.e., power = 0.80).
 # 228: bad compiling of table: 1-beta .37
 
-# tabulated comparison
+
+## Table 6. Absolute frequencies of extracted categorized test power
 l <- unique(c(names(table(unlist(powerall)))),names(table(unlist(powerallhand))))
 tab <- cbind(table(factor(unlist(powerall),l)),table(factor(unlist(powerallhand),l)))
 colnames(tab) <- c("study.character()","manual coding")
@@ -421,7 +477,15 @@ l <- cut(c(unlist(powerall),unlist(powerallhand)),c(0,.2,.5,.79,.8,.9,1,100))
 tab <- cbind(table(cut(unlist(powerall),c(0,.2,.5,.79,.8,.9,1,100))),table(cut(unlist(powerallhand),c(0,.2,.5,.79,.8,.9,1,100))))
 colnames(tab) <- c("study.character()","manual coding")
 rownames(tab)[nrow(tab)] <- ">1"
-tab <- addmargins(tab,m=1)
+# convert empirical values to interval
+powerall2<-lapply(powerall, cut,c(0,.2,.5,.79,.8,.9,1,100))
+powerallhand2<-lapply(powerallhand, cut,c(0,.2,.5,.79,.8,.9,1,100))
+
+tab<-cbind(tab,"false positive"=falseDetections(powerall2,powerallhand2,names=gsub("\\(","",gsub("\\[","",rownames(tab))),type="FP"))
+tab<-cbind(tab,"false negative"=falseDetections(powerall2,powerallhand2,names=rownames(tab),type="FN"))
+tab
+tab<-addmargins(tab,m=1)
+tab
 xtable(tab,digit=0)
 
 ############################################################
@@ -437,6 +501,7 @@ correction_hand <- lapply(correction_hand,function(x) gsub("Fisher$","Fisher LSD
 
 # hit statistic
 compare(correction,correction_hand,sums=T)
+
 # add to result table
 res <- rbind(res,c("correction for multiple testing",compare(correction,correction_hand,sums=T)))
 
@@ -444,7 +509,7 @@ res <- rbind(res,c("correction for multiple testing",compare(correction,correcti
 correction_hand[compare(correction,correction_hand)$FN>0]
 correction[compare(correction,correction_hand)$FN>0]
 
-## frequency table of absolute detections of correction procedures
+## Table 7. Absolute frequencies of authors of multiple test correction procedures
 hand <- unlist(correction_hand)
 JATS <- unlist(correction)
 lev <- names(sort(table(c(JATS,hand)),dec=T))
@@ -456,9 +521,9 @@ colnames(tab) <- c("study.character()","manual coding")
 tab
 xtable(addmargins(tab,m=1),dig=0)
 
-############################################################
+##########################################
 ## outlier removal in standard deviations
-############################################################
+########################################
 # from study.character()
 outlier <- lapply(mapply(c,lapply(character,"[","OutlierRemovalInSD")),unlist)
 outlier[which(unlist(lapply(outlier,length))==0)] <- NA
@@ -470,7 +535,7 @@ compare(outlier,outlier_hand,sums=T)
 # add to result table
 res <- rbind(res,c("outlier removal",compare(outlier,outlier_hand,sums=T)))
 
-# frequency tables of found outlier definition
+## Table 9. Absolute frequencies of extracted outlier definition expressed in standard deviations (SD)
 l <- unique(c(unlist(outlier),unlist(outlier_hand)))
 l <- l[length(l):1]
 tab_hand <- table(factor(unlist(outlier_hand),l))
@@ -478,12 +543,23 @@ tab_JATS <- table(factor(unlist(outlier),l))
 tab <- cbind(tab_JATS,tab_hand)
 colnames(tab) <- c("study.character()","manual coding")
 tab
+tab<-cbind(tab,"false positive"=falseDetections(outlier,outlier_hand,names=rownames(tab),type="FP"))
+tab<-cbind(tab,"false negative"=falseDetections(outlier,outlier_hand,names=rownames(tab),type="FN"))
+tab
+
 xtable(addmargins(tab,m=1),dig=0)
 
+# false negative
+which(compare(outlier,outlier_hand)$FN>0)
+# 100: uncompiled +- in listing brackets: (+- 2 SD) 
+# x<-"Twenty-nine additional infants were excluded from final analyses for the following reasons: failure to meet the habituation criteria, described below, extreme looking times (2 SD) during the test trials,..."
+# get.outlier.def(x)
+# x<-"Twenty-nine additional infants were excluded from final analyses for the following reasons: failure to meet the habituation criteria, described below, extreme looking times (> 2 SD) during the test trials,..."
+# get.outlier.def(x)
 
-############################################################
+##################
 ## test direction
-############################################################
+################
 # from study.character()
 direction <- lapply(mapply(c,lapply(character,"[","test_direction")),unlist)
 direction[unlist(lapply(direction,length))==0] <- NA
@@ -497,17 +573,27 @@ compare(direction,direction_hand,sums=T)
 
 # add to result table
 res <- rbind(res,c("test direction",compare(direction,direction_hand,sums=T)))
+res
 
-# distribution of detections
-m <- cbind(table(direction),table(direction_hand))
+## Table 10. Absolute detections of test direction/s
+tab <- cbind(table(direction),table(direction_hand))
+colnames(tab) <- c("study.character()","manual coding")
+tab
+tab<-cbind(tab,"false positive"=falseDetections(direction,direction_hand,names=rownames(tab),type="FP"))
+tab<-cbind(tab,"false negative"=falseDetections(direction,direction_hand,names=rownames(tab),type="FN"))
+tab
 
-colnames(m) <- c("study.character()","manual coding")
-m
-xtable(addmargins(m,m=1),dig=0)
+xtable(addmargins(tab,m=1),dig=0)
 
-############################################################
-## interaction
-############################################################
+# false positive: "one sided aggression"
+which(compare(direction,direction_hand)$FP>0)
+# false negative: "two tails"
+which(compare(direction,direction_hand)$FN>0)
+
+
+########################
+## interaction analysis
+######################
 # from study.character()
 interaction <- mapply(c,lapply(character,"[","InteractionModeratorMediatorEffect"))
 interaction[unlist(grepl("^$",interaction))] <- NA
@@ -521,12 +607,17 @@ a <- compare(interaction,interaction_hand)
 # add to result table
 res <- rbind(res,c("interaction/mediator/moderator",compare(interaction,interaction_hand,sums=T)))
 
-# distribution of detections
+## Table 8. Absolute frequencies of specific interaction effects
 l <- sort(unique(c(unlist(interaction),unlist(interaction_hand))))
 tab <- cbind(table(factor(unlist(interaction),l)),
            table(factor(unlist(interaction_hand),l)))
 
 colnames(tab) <- c("study.character","manual coding")
+tab
+tab<-cbind(tab,"false positive"=falseDetections(interaction,interaction_hand,names=rownames(tab),type="FP"))
+tab<-cbind(tab,"false negative"=falseDetections(interaction,interaction_hand,names=rownames(tab),type="FN"))
+tab
+
 xtable(addmargins(tab,m=1),dig=0)
 
 ## Interaction as binary output
@@ -541,9 +632,9 @@ a <- compare(interaction_bin,interaction_hand_bin)
 res <- rbind(res,c("interaction (binary)",compare(interaction_bin,interaction_hand_bin,sums=T)))
 
 
-############################################################
-## assumptions
-############################################################
+###########################
+## statistical assumptions
+#########################
 # from study.character()
 assumptions <- lapply(mapply(c,lapply(character,"[","assumptions")),unlist)
 # from manual analysis
@@ -558,7 +649,7 @@ res <- rbind(res,c("assumptions",compare(assumptions,assumptions_hand,sums=T)))
 table(unlist(lapply(assumptions,length)))
 table(unlist(lapply(assumptions_hand,length)))
 
-# tabulated comparison of detected assumptions
+## Table 11. Absolute frequencies of detected assumptions
 t <- sort(table(unlist(assumptions)));t
 t_hand <- sort(table(unlist(assumptions_hand)));t_hand
 
@@ -568,8 +659,11 @@ tab <- cbind((table(factor(unlist(assumptions),l))),
 colnames(tab) <- c("study.character()","manual coding")
 tab <- tab[order(tab[,1],decreasing=T),]
 tab
-xtable(addmargins(tab,1),dig=0)
+tab<-cbind(tab,"false positive"=falseDetections(assumptions,assumptions_hand,names=rownames(tab),type="FP"))
+tab<-cbind(tab,"false negative"=falseDetections(assumptions,assumptions_hand,names=rownames(tab),type="FN"))
 
+tab
+xtable(addmargins(tab,1),dig=0)
 
 ## assumptions as binary
 assumptions_bin <- unname(unlist(lapply(assumptions,length))>0)
@@ -582,10 +676,9 @@ compare(assumptions_bin,assumptions_hand_bin,sums=T)
 # add to result table
 res <- rbind(res,c("assumptions (binary)",compare(assumptions_bin,assumptions_hand_bin,sums=T)))
 
-############################################################
-## software
-############################################################
-
+#######################
+## analytical software
+#####################
 # from study.character()
 software <- mapply(c,lapply(character,"[","software"))
 # from manual analysis by us
@@ -602,7 +695,8 @@ res <- rbind(res,c("software",compare(software,software_hand,sums=T)))
 # which are false negative
 table(unlist(software_hand[which(a$FN>0)]))[!is.element(names(table(unlist(software_hand[which(a$FN>0)]))),names(table(unlist(software[which(a$FN>0)]))))]
 
-## frequency table of absolute detections of software names
+## Table 12. Absolute frequencies of detected software solutions by study.character, the manually coded data, and 
+##           the explicitly stated software solution used for the main analyis reported in Blanca et al.’s TABLE 8.
 hand <- unlist(software_hand)
 JATS <- unlist(software)
 blanca <- unlist(software_blanca)
@@ -617,13 +711,19 @@ tab<-tab[nrow(tab):1,]
 colnames(tab) <- c("study.character()","manual coding","Blanca et al.")
 tab
 
+# sort by frequency
+tab<-tab[order(tab[,1],decreasing=T),]
+tab
+xtable(tab[1:16,])
+xtable(tab[17:31,])
+
 ## hit statistic for Blanca's software extraction
 compare(software_blanca,software,sums=T)
 
 
-############################################################
+#############
 ## n studies
-############################################################
+###########
 # from study.character()
 nstudies <- unlist(mapply(c,lapply(character,"[","Nstudies")))
 # from manual analysis
@@ -637,9 +737,10 @@ compare(nstudies,nstudies_hand,sums=T)
 res <- rbind(res,c("n studies",compare(nstudies,nstudies_hand,sums=T)))
 
 # analyse errors
-cbind(1:287,nstudies,nstudies_hand)[compare(nstudies,nstudies_hand)$FP>0,]
+cbind(1:287,nstudies,nstudies_hand,data$file)[compare(nstudies,nstudies_hand)$FP>0,]
 
-# full distribution of n studies
+## Table 13. Absolute frequencies of extracted number of studies per paper by study.character, 
+##           the manually coded data and Blanca et al.’s TABLE 2
 l <- unique(nstudies)
 tab <- rbind(table(factor(nstudies,l)),table(factor(nstudies_hand,l)),table(factor(nstudies_Blanca,l)))
 rownames(tab) <- c("study.character()","manual coding","Blanca et al.")
@@ -647,9 +748,9 @@ tab
 xtable(tab)
 
 
-##########################################################
+###################################################
 ## calculate sum, accuracy, sensitivity, specifity
-##########################################################
+#################################################
 for(i in 2:5) res[,i] <- as.numeric(res[,i])
 digits <- 2
 
