@@ -12,7 +12,7 @@
 # remove objects from work space
 rm(list=ls())
 
-# set working directory to folder with data files (adjust to your system)
+# set working directory to folder with data files (adjust to your system!)
 setwd("/home/data")
 # load prepared lists (object names: d1-d4)
 for(i in 1:4) load(paste0("data",i,".rda"))
@@ -48,7 +48,7 @@ d <- d[-i]
 length(d)
 
 # store index for selection of abstracts with preregistration
-iPrereg <- -i
+iBackup <- -i
 
 # select articles with statistical results
 stats <- mapply(c,lapply(d,"[","stats"))
@@ -140,8 +140,8 @@ nPcheckable[is.na(nPcheckable)] <- 0
 a <- paste0(format(sum(nPvalues>0),big.mark=",")," (",paste0(100*round(sum(nPvalues>0)/length(nPvalues),2),"\\%)"));a
 
 # proportion of articles with p-value pre/post 2016
-tab <- round(prop.table(table(nPvalues>0,yearGE2016),2)[2,],2)
-propP <- round(prop.table(table(nPvalues>0)),2)[2]
+tab <- prop.table(table(nPvalues>0,yearGE2016),2)[2,]
+propP <- prop.table(table(nPvalues>0))[2]
 tab <- c(tab,propP)
 res <- rbind(res,"proportion of articles with with p-value/s"=tab)
 res
@@ -157,7 +157,7 @@ all <- prop.table(table(multiStudy[nPvalues]))[2]; all
 round(prop.table(table(journal,multiStudy),m=1)[,2],2)
 # by time (>2015)
 tab <- prop.table(table(multiStudy=multiStudy[nPvalues>0],year=year[nPvalues>0]>=2016),m=2)
-tab <- round(c(tab[2,],all),2)
+tab <- c(tab[2,],all)
 res <- rbind(res,"-> proportion of articles with multiple studies"=tab)
 res
 
@@ -170,7 +170,7 @@ res
 #  has computable p-value pre/post 2016
 tab <- round(prop.table(table(nPcomputable[nPvalues>0]>0,yearGE2016[nPvalues>0]),2)[2,],2)
 names(tab) <- c("<=2015",">2015")
-propPcomp <- round(prop.table(table(nPcomputable[nPvalues>0]>0)),2)[2]
+propPcomp <- prop.table(table(nPcomputable[nPvalues>0]>0))[2]
 tab <- c(tab,propPcomp)
 res <- rbind(res,"-> proportion of articles with recomputable p-value"=tab)
 res
@@ -178,7 +178,7 @@ res
 # proportion of studies with checkable p-values pre/post 2016
 tab <- round(prop.table(table(nPcheckable[nPvalues>0]>0,yearGE2016[nPvalues>0]),2)[2,],2)
 names(tab) <- c("<=2015",">2015")
-propPcheck <- round(prop.table(table(nPcheckable[nPvalues>0]>0)),2)[2]
+propPcheck <- prop.table(table(nPcheckable[nPvalues>0]>0))[2]
 tab <- c(tab,propPcheck)
 res <- rbind(res,"-> proportion of articles with checkable p-value"=tab)
 res
@@ -247,8 +247,9 @@ for(i in (1:length(psig))[l>0]){
   temp <- prop.table(table(temp))[2]
   propSig[i] <- temp
     }
+propSigReported<-propSig
 
-res <- rbind(res,"-> median proportion of reported p < .05"=round(c(tapply(propSig,yearGE2016,median,na.rm=T),total=median(propSig,na.rm=T)),2))
+res <- rbind(res,"-> median proportion of reported p < .05"=c(tapply(propSig,yearGE2016,median,na.rm=T),total=median(propSig,na.rm=T)))
 res
 
 ## proportion of computable p < .05
@@ -266,14 +267,15 @@ nsig3 <- unlist(lapply(recalculatedP,function(x) sum(x<.001,na.rm=T)))
 ninsig3 <- unlist(lapply(recalculatedP,function(x) sum(x>=.001,na.rm=T)))
 
 propNsig <- unlist(lapply(recalculatedP,function(x) sum(x<.05,na.rm=T)/sum(!is.na(x))))
-res <- rbind(res,"-> median proportion of computable p < .05"=round(c(tapply(propNsig,yearGE2016,median,na.rm=T),total=median(propNsig,na.rm=T)),2))
+propSigComputed<-propNsig
+res <- rbind(res,"-> median proportion of computable p < .05"=c(tapply(propNsig,yearGE2016,median,na.rm=T),total=median(propNsig,na.rm=T)))
 res
 
 # N significant results per journal
 # proportion of significant (p<.05, p<.01, p<.001) results
-tab <- round(cbind(tab,tapply(nsig,journal,sum)/(tapply(nsig,journal,sum)+tapply(ninsig,journal,sum))),2)
-tab <- round(cbind(tab,tapply(nsig2,journal,sum)/(tapply(nsig2,journal,sum)+tapply(ninsig2,journal,sum))),2)
-tab <- round(cbind(tab,tapply(nsig3,journal,sum)/(tapply(nsig3,journal,sum)+tapply(ninsig3,journal,sum))),2)
+tab <- cbind(tab,tapply(nsig,journal,sum)/(tapply(nsig,journal,sum)+tapply(ninsig,journal,sum)))
+tab <- cbind(tab,tapply(nsig2,journal,sum)/(tapply(nsig2,journal,sum)+tapply(ninsig2,journal,sum)))
+tab <- cbind(tab,tapply(nsig3,journal,sum)/(tapply(nsig3,journal,sum)+tapply(ninsig3,journal,sum)))
 #colnames(tab)[(ncol(tab)-3):ncol(tab)] <- c("n p comp.<.05","prop. p comp.<.05","prop. p comp.<.01","prop. p comp.<.001")
 colnames(tab)[(ncol(tab)-2):ncol(tab)] <- c("prop. comp. p<.05","prop. comp. p<.01","prop. comp. p<.001")
 
@@ -288,7 +290,7 @@ tab[nrow(tab),9:11] <- round(c(sum(nsig)/(sum(nsig)+sum(ninsig)),sum(nsig2)/(sum
 tab[,3]<-round(as.numeric(tab[,3]),1)
 tab[,4]<-round(as.numeric(tab[,4]),1)
 tab[,5]<-round(as.numeric(tab[,5]),1)
-tab <- format(tab,big.mark=",",trim=TRUE)
+tab <- format(round(tab,2),big.mark=",",trim=TRUE)
 
 a <- print(xtable::xtable(tab))
 a <- gsub("\\.00([^0-9])","\\1",a)
@@ -299,6 +301,7 @@ a <- gsub("  *"," ",a)
 
 # Table 2: Journal specific properties of extracted raw, computable and checkable p-values within articles that contain any statistical result
 cat(a)
+
 
 ##############################################
 ## change in reporting of effect sizes #####
@@ -404,11 +407,11 @@ graphing::prettybarplot(t,xlab="maximum alpha level",ylab="",names=names(t),cex.
 
 ## has alpha level < .05  
 hits <- alpha[nPvalues>0]<.05&!is.na(alpha[nPvalues>0])&alpha[nPvalues>0]>0
-alphaProp <- round(prop.table(table(hits>0)),2)
+alphaProp <- prop.table(table(hits>0))
 alphaProp
 # before and after 2016
 round(addmargins(prop.table(table(hits>0,yearGE2016[nPvalues>0]),2),1),2)
-tab <- round(addmargins(prop.table(table(hits>0,yearGE2016[nPvalues>0]),2),1),2)[2,]
+tab <- addmargins(prop.table(table(hits>0,yearGE2016[nPvalues>0]),2),1)[2,]
 tab <- c(tab,alphaProp[2])
 res <- rbind(res,"-> proportion with alpha level < .05"=tab)
 res
@@ -427,11 +430,11 @@ cat(a)
 
 ## proportion with alpha level < .01  
 hits <- alpha[nPvalues>0]<.01&!is.na(alpha[nPvalues>0])
-alphaProp <- round(prop.table(table(hits>0)),2)
+alphaProp <- prop.table(table(hits>0))
 alphaProp
 # before and after 2016
 round(addmargins(prop.table(table(hits>0,yearGE2016[nPvalues>0]),2),1),2)
-tab <- round(addmargins(prop.table(table(hits>0,yearGE2016[nPvalues>0]),2),1),2)[2,]
+tab <- addmargins(prop.table(table(hits>0,yearGE2016[nPvalues>0]),2),1)[2,]
 tab <- c(tab,alphaProp[2])
 res <- rbind(res,"-> proportion with alpha level < .01"=tab)
 res
@@ -452,22 +455,23 @@ probs
 # in methods
 hits1 <- (unlist(grepl("confidence interval",lapply(d,"[","methods"))))
 table(hits1)
-# in results
-hits2 <- (unlist(grepl("[^a-zA-Z][[Cc][Ii][^a-zA-Z]",mapply(c,lapply(d,"[","stats")))))
+# CI in results
+hits2 <- (unlist(grepl("[^a-zA-Z][[Cc][Ii][^a-zA-Z]|[^a-zA-Z]CIs[^a-zA-Z]",mapply(c,lapply(d,"[","stats")))))
 table(hits2)
+
 # total
 hits <- hits1>0|hits2>0
 table(hits)
 
 ## overall use of CIs
-CIprop <- round(prop.table(table(hits)),2)
+CIprop <- prop.table(table(hits))
 CIprop
 # before and after 2016
-tab <- round(addmargins(prop.table(table(hits,yearGE2016),2),1),2)[2,]
+tab <- addmargins(prop.table(table(hits,yearGE2016),2),1)[2,]
 tab <- c(tab,CIprop[2])
 tab
 res <- rbind(res,"proportion of articles with confidence interval"=tab)
-res
+round(res,2)
 
 # use of CI by journal and year
 tabs <- table(journal,year,hits)[,,2]
@@ -496,11 +500,11 @@ hits <- (unlist(lapply(mapply(c,lapply(d,"[[","power")), function(x) length(x)>0
 
 # overall stats of power usage
 sum(hits)
-powerProp <- round(prop.table(table(hits)),2); powerProp
+powerProp <- prop.table(table(hits)); powerProp
 
 # before and after 2016
 round(addmargins(prop.table(table(hits,yearGE2016),2),1),2)
-tab <- round(addmargins(prop.table(table(hits,yearGE2016),2),1),2)[2,]
+tab <- addmargins(prop.table(table(hits,yearGE2016),2),1)[2,]
 tab <- c(tab,powerProp[2])
 res <- rbind(res,"proportion of articles with power analysis/value"=tab)
 res
@@ -555,12 +559,12 @@ hits <- (unlist(grepl("bayes",m)))
 sum(hits)
 
 ## overall mentions of bayesian statistics in articles
-bayes <- round(prop.table(table(hits)),2)
+bayes <- prop.table(table(hits))
 
 # before and after 2016
-tab <- round(addmargins(prop.table(table(hits,yearGE2016),2),1),2)[2,]
+tab <- addmargins(prop.table(table(hits,yearGE2016),2),1)[2,]
 tab <- c(tab,bayes[2])
-res <- rbind(res,"with Bayesian analysis"=tab)
+res <- rbind(res,"proportion of articles with with Bayesian analysis"=tab)
 res
 
 # by journal and year
@@ -575,20 +579,22 @@ bayes
 bayes[bayes==max(bayes)]
 bayes==max(bayes) #  Psychology & Aging in 2019
 
-#############################################
-########## use of preregistration ##########
-###########################################
+#####################################################################
+########## use of preregistration and multiverse analysis ##########
+###################################################################
 # Due to file size and copyright concerns the data of abstracts is not made publicy available. 
 # Please contact the author to provide the data. 
 load("/home/ingmar/JATSdecoderEvaluation/04_Psychology/data/fullDataAbstract.rda") 
 # reduce data
-fullData <- fullData[iPrereg]
+fullData <- fullData[iBackup]
 fullData <- fullData[hasStats]
 # extract data
 abstractPrereg <- lapply(fullData,"[","abstract")
 titlePrereg <- lapply(fullData,"[","title")
+methodsPrereg <- lapply(fullData,"[","methods")
 yearPrereg <- unlist(lapply(fullData,"[","year"))
-yearPrereg <- factor(yearPrereg,as.character(2010:2021))
+yearGE2016Prereg <- yearPrereg>=2016
+yearGE2016Prereg <- factor(yearGE2016Prereg,c(FALSE,TRUE),c("<=2015",">2015"))
 journalPrereg <- factor(unlist(lapply(fullData,"[","journal")))
 # finetune journal labels
 lev <- levels(journalPrereg)
@@ -612,7 +618,6 @@ sum(j1)
 j2<-grepl("pre[- ]*registered report|pre[- ]*registered replication|pre[- ]*registered stud",abstractPrereg)
 sum(j2)
 
-
 # frequency of registered reports
 i<-(i1&!i2)|(j1&!j2)
 sum(i)
@@ -626,7 +631,6 @@ sum(i|j)
 
 # relative frequency of preregistrated reports
 sum(i|j)/length(d)
-
 
 table(journalPrereg[i|j])
 
@@ -652,6 +656,100 @@ sum(grepl(" replicat",abstractPrereg[])|grepl(" replicat",titlePrereg[]))
 # increase factor of preregistration in ordinary and replication studies
 (25/1992)/((sum(i|j)-25)/(length(d)-1992))
 
+### has multiverse in title
+i<-grepl("[Mm]ulti[- ]*verse",titlePrereg)
+sum(i)
+# has multiverse in abstract
+j<-grepl("[Mm]ulti[- ]*verse",abstractPrereg)
+sum(j)
+# has multiverse in methods
+k<-grepl("multi[- ]*verse",methodsPrereg)
+sum(k)
+# frequency of multiverse reports
+sum(i|j|k)
+# article titles
+unlist(titlePrereg[i|j|k])
+
+# first appearance
+table(sort(yearPrereg[i|j|k]))
+# relative frequency of multiverse analyses
+sum(i|j|k)/length(fullData)
+table(i|j|k,yearGE2016)
+table(journalPrereg[i|j|k])
+
+#####################################################################
+#### use of equivalence tests, non-inferiority and superiority trials
+
+## has equivalence test in title
+i<-grepl("[Ee]quivalence [Tt]est",titlePrereg)
+sum(i)
+# has equivalence test in abstract
+j<-grepl("[Ee]quivalence [Tt]est",abstractPrereg)
+sum(j)
+# has equivalence test in methods
+k<-grepl("equivalence test",methodsPrereg)
+sum(k)
+# frequency of equivalence test detections
+equi<-i|j|k
+sum(equi)
+# relative frequency of equivalence testing
+sum(equi)/length(fullData)
+table(equi,yearGE2016)
+table(journalPrereg[equi])
+# article titles
+unlist(titlePrereg[equi])
+
+
+## has non-inferiority in title
+i<-grepl("[Nn]on[- ]*inferiority",titlePrereg)
+sum(i)
+# has non-inferiority in abstract
+j<-grepl("[Nn]on[- ]*inferiority",abstractPrereg)
+sum(j)
+# has non-inferiority in methods
+k<-grepl("non[- ]*inferiority",methodsPrereg)
+sum(k)
+# frequency of non-inferiority 
+infer<-i|j|k
+sum(infer)
+# relative frequency of non-inferiority
+sum(infer)/length(fullData)
+table(infer,yearGE2016)
+table(journalPrereg[infer])
+# article titles
+unlist(titlePrereg[infer])
+
+
+## has superiority in title
+i<-grepl("[Ss]uperiority",titlePrereg)
+sum(i)
+# has superiority in abstract
+j<-grepl("[Ss]uperiority",abstractPrereg)
+sum(j)
+# has superiority in methods
+k<-grepl("[Ss]uperiority",methodsPrereg)
+sum(k)
+# frequency of superiority detections
+super<-i|j|k
+sum(super)
+# relative frequency of superiority
+sum(super)/length(fullData)
+table(super,yearGE2016)
+table(journalPrereg[super])
+# article titles
+unlist(titlePrereg[super])
+
+grep("[Ss]uperiority",unlist(methodsPrereg[i|j|k]),v=T)
+grep("[Ss]uperiority",unlist(titlePrereg[i|j|k]),v=T)
+
+# table with N equivalence, non-inferiority and superiority
+temp<-rbind("equivalence test"=table(equi,yearGE2016)[2,],
+"non-inferiority"=table(infer,yearGE2016)[2,],
+"superiority"=table(super,yearGE2016)[2,])
+temp
+
+table(equi|infer|super,yearGE2016)
+
 #########################################################
 ######## use of corrections for multiple testing #######
 #######################################################
@@ -668,14 +766,14 @@ y <- rep(yearGE2016[hits>0], times=hits[hits>0])
 round(addmargins(prop.table(table(unlist(proc),y),m=2),1),2)
 
 # overall use of any correction method
-corrProp <- round(prop.table(table(hits>0)),2)
+corrProp <- prop.table(table(hits>0))
 corrProp
 
 # before and after 2016
 round(addmargins(prop.table(table(hits>0,yearGE2016),2),1),2)
-tab <- round(addmargins(prop.table(table(hits>0,yearGE2016),2),1),2)[2,]
+tab <- addmargins(prop.table(table(hits>0,yearGE2016),2),1)[2,]
 tab <- c(tab,corrProp[2])
-res <- round(rbind(res,"has correction for multiple testing"=tab),2)
+res <- rbind(res,"proportion of articles with correction for multiple testing"=tab)
 res
 
 # by journal and year
@@ -755,8 +853,8 @@ table(direction)
 # frequencies before and after 2015
 hits <- direction=="one and two sided"|direction=="one sided"
 tab <- prop.table(table(hits,yearGE2016),m=2)[2,]
-tab <- round(c(tab,total=prop.table(table(hits))[2]),2)
-res <- rbind(res,"has one sided test"=tab)
+tab <- c(tab,total=prop.table(table(hits))[2])
+res <- rbind(res,"proportion of articles with one sided test"=tab)
 res
 
 # frequencies before and after 2015
@@ -802,7 +900,7 @@ m
 ## median sample size pre/post 2016
 size[is.na(size)] <- 0
 #res <- rbind(res,"n articles with extractable sample size"=c(tapply(size[size>0&!is.na(size)],yearGE2016[size>0&!is.na(size)],length),sum(size>0,na.rm=T)))
-res <- rbind(res,"prop.of articles with extr. sample size"=round(c(tapply(size[size>0&!is.na(size)],yearGE2016[size>0&!is.na(size)],length),sum(size>0,na.rm=T))/c(table(yearGE2016),length(yearGE2016)),2))
+res <- rbind(res,"proportion of articles with extractable sample size"=c(tapply(size[size>0&!is.na(size)],yearGE2016[size>0&!is.na(size)],length),sum(size>0,na.rm=T))/c(table(yearGE2016),length(yearGE2016)))
 res <- rbind(res,"-> median of extracted sample sizes"=c(tapply(size[size>0&!is.na(size)],yearGE2016[size>0&!is.na(size)],median,na.rm=T),median(size[size>0&!is.na(size)],na.rm=T)))
 res
 
@@ -821,8 +919,118 @@ med <- rbind(med,"Global median"=c(tapply(size[size>0],year[size>0],median,na.rm
 # Table 13: Median estimated sample size by journal and year
 round(med)
 
-# Table 1: Change in study characteristics in research articles with statistical results before and after 2015
+
+## Table 1: Change in study characteristics in research articles with statistical results before and after 2015
 res
+
+## Functions for delta and 1-alpha CIs
+# delta and CI for difference in proportions
+ciProp<-function(n1,n2,p1,p2,alpha,digits=3){
+  delta<-p2-p1
+  ci<-delta+c(-1,1)*qnorm(1-alpha/2)*sqrt(p1*(1-p1)/n1+p2*(1-p2)/n2)
+  return(c(delta=round(delta,digits),ci=paste0("[",paste0(round(ci,digits),collapse="; "),"]")))
+}
+
+# delta and bootstrap CI for difference in medians
+ciMedian<-function(x,y,alpha,nsim=10000,digits=3){
+  x<-na.omit(x); y<-na.omit(y)
+  dif<- NULL
+  for(i in seq_len(nsim))
+    dif[i]<- median(sample(y,length(y)-1, replace=TRUE)) - median(sample(x,length(x)-1, replace=TRUE))
+  return(c(delta=round(median(y)-median(x),3),ci=paste0("[",paste0(round(quantile(dif,prob=c(alpha/2,(1-alpha/2))),digits=digits),collapse="; "),"]")))
+}
+
+# add deltas and CIs
+# n research articles
+ns<-res[2,1:2]*res[3,1:2]
+# deltas and CIs
+ci3<-ciProp(ns[1],ns[2],res[3,1],res[3,2],alpha=.001,digits=3)
+ci4<-ciProp(ns[1],ns[2],res[4,1],res[4,2],alpha=.001,digits=3)
+nPvalperStudy<-nPvalues[nPvalues>0]/Nstudies[nPvalues>0]
+ci5<-ciMedian(nPvalperStudy[yearGE2016[nPvalues>0]=="<=2015"],
+         nPvalperStudy[yearGE2016[nPvalues>0]==">2015"],alpha=.001,digits=3,nsim=20000)
+ci6<-ciProp(ns[1],ns[2],res[6,1],res[6,2],alpha=.001,digits=3)
+ci7<-ciProp(ns[1],ns[2],res[7,1],res[7,2],alpha=.001,digits=3)
+ci8<-ciMedian(
+  propSigReported[yearGE2016[nPvalues>0]=="<=2015"],
+  propSigReported[yearGE2016[nPvalues>0]==">2015"],alpha=.001,digits=3,nsim=20000)
+ci9<-ciMedian(
+  propSigComputed[yearGE2016[nPvalues>0]=="<=2015"],
+  propSigComputed[yearGE2016[nPvalues>0]==">2015"],alpha=.001,digits=3,nsim=20000)
+ci10<-ciProp(ns[1],ns[2],res[10,1],res[10,2],alpha=.001,digits=3)
+ci11<-ciProp(res[2,1],res[2,2],res[11,1],res[11,2],alpha=.001,digits=3)
+ci12<-ciProp(ns[1],ns[2],res[12,1],res[12,2],alpha=.001,digits=3)
+ci13<-ciProp(ns[1],ns[2],res[13,1],res[13,2],alpha=.001,digits=3)
+ci14<-ciProp(ns[1],ns[2],res[14,1],res[14,2],alpha=.001,digits=3)
+ci15<-ciProp(ns[1],ns[2],res[15,1],res[15,2],alpha=.001,digits=3)
+ci16<-ciProp(ns[1],ns[2],res[16,1],res[16,2],alpha=.001,digits=3)
+ci17<-ciProp(ns[1],ns[2],res[17,1],res[17,2],alpha=.001,digits=3)
+ci18<-ciMedian(
+  size[yearGE2016=="<=2015"&size>0],
+  size[yearGE2016==">2015"&size>0],alpha=.001,digits=1,nsim=20000)
+ci18
+
+## add CIs to result table
+table1<-cbind(round(res,2),delta=NA,".999 CI"=NA)
+for(i in 1:2) table1[i,4]<-res[i,2]-res[i,1]
+for(i in 3:18) table1[i,4:5]<-eval(parse(text=paste0("ci",i)))
+table1
+table1<-apply(table1,2,function(x) gsub("^0\\.|(\\[*-)0\\.|^(\\[)0\\.","\\1\\2.",x))
+table1<-apply(table1,2,function(x) gsub("; (-)*0\\.","; \\1.",x))
+table1
+xtable::xtable(table1)
+
+##################################################
+## median sample size by repeated measure analsis 
+sizePrereg <- unlist(lapply(mapply(c,lapply(fullData,"[","estimated_sample_size")),"[","estimatedSampleSize"))
+# identify article with repeated measures analysis
+i<-grepl("repeated measure|cross lagged|panel |longitud",methodsPrereg)
+rpm<-factor(i,c(T,F),c("repeated measure","without rm"))
+sum(i)
+
+# proportion with repeated measure pre-post 2015
+addmargins(round(prop.table(table(rpm,yearGE2016Prereg),m=2),2),m=1)
+
+## Table 14: Median estimated sample size in articles with and without repeated 
+##           measures analysis and relative frequencies of articles with repeated  
+##           measures design
+tapply(sizePrereg,rpm:yearGE2016Prereg,median,na.rm=T)
+mat<-matrix(tapply(sizePrereg,rpm:yearGE2016Prereg,median,na.rm=T),2,by=T)
+colnames(mat)<-c("<=2015",">2015")
+rownames(mat)<-c("with repeated measures","without repeated measures")
+
+# add proportion with repeated measure pre-post 2015
+temp<-prop.table(table(rpm,yearGE2016Prereg),m=2)[1,]
+temp
+mat<-rbind(mat,"proportion with repeated measures"=round(temp,2))
+mat
+
+mat
+ciRPM1<-
+  ciMedian(sizePrereg[rpm==levels(rpm)[1]&yearGE2016Prereg==levels(yearGE2016Prereg)[1]],
+  sizePrereg[rpm==levels(rpm)[1]&yearGE2016Prereg==levels(yearGE2016Prereg)[2]],alpha=.001,digits=1,nsim=20000)
+ciRPM2<-
+  ciMedian(sizePrereg[rpm==levels(rpm)[2]&yearGE2016Prereg==levels(yearGE2016Prereg)[1]],
+           sizePrereg[rpm==levels(rpm)[2]&yearGE2016Prereg==levels(yearGE2016Prereg)[2]],alpha=.001,digits=1,nsim=20000)
+ns<-temp*length(sizePrereg)
+ciRPM3<-ciProp(ns[1],ns[2],temp[1],temp[2],alpha=.001,digits=3)
+
+mat<-cbind(mat,rbind(ciRPM1,ciRPM2,ciRPM3))
+
+#mat<-cbind(mat,"proportion"=round(prop.table(table(rpm)),2))
+
+xtable::xtable(mat)
+
+
+# median sample size by repeated measure, pre-post 2015 and journal
+tab<-NULL
+for(i in 1:length(levels(journalPrereg))){
+  tab<-rbind(tab,c(round(tapply(sizePrereg[journalPrereg==levels(journalPrereg)[i]],
+         (rpm:yearGE2016Prereg)[journalPrereg==levels(journalPrereg)[i]],                                                         median, na.rm=T))))
+}
+rownames(tab)<-levels(journalPrereg)
+tab
+
 
 ###################################################
 ########## change in country of origin ###########
