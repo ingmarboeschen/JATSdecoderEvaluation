@@ -2,7 +2,7 @@ The *statcheck* package is flawed by design and is not a valid spell checker for
 ==================================
 Böschen, Ingmar (submitted 2013).
 
-<u>*Abstract*</u>
+<ins>*Abstract*</ins>
 
 The R package *statcheck* aims to extract statistical test results from text and check the reported p-values on consistency. Recently it has also been featured as a spell checker for statistical results. 
 
