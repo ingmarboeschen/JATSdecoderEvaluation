@@ -7,10 +7,9 @@
 ## install statcheck and/or load the statcheck package
 # install.packages("statcheck")
 library(statcheck)
-# Note: the Z- and r-statistics need a space in front to be detected!
+# Note: the Z-statistic requires a space in front to be detected!
 statcheck("Z=2.3, p<.04")
 statcheck(" Z=2.3, p<.04")
-
 # wheras no space is needed as initial character in other result types 
 statcheck("t(12)=2.3, p<.04")
 statcheck("F(12, 34)=2.3, p<.04")
@@ -28,10 +27,13 @@ x<-c(
   " Chi^2(12)=3.4, p<.05",
   " chi2(12)=3.4, p<.05",
   " Q(12)=3.4, p<.01")
+x
 
-## Table 1: Example text representations of statistical test results that are checkable with \textit{statcheck} in rearranged output table
+## Table 1: Example text representations of statistical test results that are checkable with statcheck in rearranged output table
 a<-data.frame(rawInput=paste0('"',x,'"'),statcheck(x)[,c(10,2:9,11:12)])
-print(xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a),)))),include.rownames=T)
+a
+## render output with xtable
+#print(xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a),)))),include.rownames=T)
 # manually replace: "$chi$" with "$\chi$"
 
 #####################################################################
@@ -40,20 +42,30 @@ print(xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a)
 ## Table 2: Example text representations of statistical test results with
 ## all upper- and lowercase letters in front of brackets
 x<-paste0(" ",c(LETTERS,letters),"(12)=.3, p<.05")
-a<-statcheck(x)
 x
-xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a[,c(10,1:9,11:14)])))))
+a<-statcheck(x)
+
+## render output with xtable
+#xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a[,c(10,1:9,11:14)])))))
 
 ## Table 3: Example text representations of statistical test results with
 ## all upper- and lowercase letters followed and the number 2 in front of brackets
-a<-statcheck(paste0(" ",c(LETTERS,letters),"2(12)=.3, p<.05"))
+x<-paste0(" ",c(LETTERS,letters),"2(12)=.3, p<.05")
+x
+a<-statcheck(x)
 a
-xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a[,c(10,1:9,11:14)]),))))
+
+## render output with xtable
+#xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a[,c(10,1:9,11:14)]),))))
 
 ## Table 4: Example text representations of statistical test results with
 ## all upper- and lowercase letters followed the exponent sign and the number 2 in front of brackets
-a<-statcheck(paste0(" ",c(LETTERS,letters),"^2(12)=.3, p<.05"))
+x<-paste0(" ",c(LETTERS,letters),"^2(12)=.3, p<.05")
+x
+a<-statcheck(x)
 a
+
+## render output with xtable
 xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a[,c(10,1:9,11:14)])))))
 
 ###################################################
