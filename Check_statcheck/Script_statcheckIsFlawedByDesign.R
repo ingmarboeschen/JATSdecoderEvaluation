@@ -17,7 +17,7 @@ statcheck("F(12, 34)=2.3, p<.04")
 #################################################################
 ## Some examples of results that statcheck can check
 ##################################
-x<-c(
+x1<-c(
   " t(12)=2.3, p<.05",
   " F(1,23)=4.5, p=.23",
   " r(12)=.34, p=.56",
@@ -27,10 +27,10 @@ x<-c(
   " Chi^2(12)=3.4, p<.05",
   " chi2(12)=3.4, p<.05",
   " Q(12)=3.4, p<.01")
-x
+x1
 
 ## Table 1: Example text representations of statistical test results that are checkable with statcheck in rearranged output table
-a<-data.frame(rawInput=paste0('"',x,'"'),statcheck(x)[,c(10,2:9,11:12)])
+a<-data.frame(rawInput=paste0('"',x1,'"'),statcheck(x1)[,c(10,2:9,11:12)])
 a
 ## render output with xtable
 #print(xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a),)))),include.rownames=T)
@@ -41,18 +41,18 @@ a
 
 ## Table 2: Example text representations of statistical test results with
 ## all upper- and lowercase letters in front of brackets
-x<-paste0(" ",c(LETTERS,letters),"(12)=.3, p<.05")
-x
-a<-statcheck(x)
+x2<-paste0(" ",c(LETTERS,letters),"(12)=.3, p<.05")
+x2
+a<-statcheck(x2)
 
 ## render output with xtable
 #xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a[,c(10,1:9,11:14)])))))
 
 ## Table 3: Example text representations of statistical test results with
 ## all upper- and lowercase letters followed and the number 2 in front of brackets
-x<-paste0(" ",c(LETTERS,letters),"2(12)=.3, p<.05")
-x
-a<-statcheck(x)
+x3<-paste0(" ",c(LETTERS,letters),"2(12)=.3, p<.05")
+x3
+a<-statcheck(x3)
 a
 
 ## render output with xtable
@@ -60,9 +60,9 @@ a
 
 ## Table 4: Example text representations of statistical test results with
 ## all upper- and lowercase letters followed the exponent sign and the number 2 in front of brackets
-x<-paste0(" ",c(LETTERS,letters),"^2(12)=.3, p<.05")
-x
-a<-statcheck(x)
+x4<-paste0(" ",c(LETTERS,letters),"^2(12)=.3, p<.05")
+x4
+a<-statcheck(x4)
 a
 
 ## render output with xtable
@@ -89,7 +89,7 @@ pattern<-c(
 "has a double space behind the coma",
 "has badly or non compiled operators due to prior PDF to text conversion ")
 
-x<-c(
+x5<-c(
   " p=.12 or r=.12, p=.34",
   " t(12)=1.2, d=3.4, p=.56",
   " t(12)=1.2; p=.34",
@@ -109,8 +109,29 @@ x<-c(
   " t 1.2, p 5 .34"
   )
 
-cbind(substr(pattern,1,61),x)
+cbind(substr(pattern,1,61),x5)
 
 # Not a single result is detected by statcheck:
-statcheck::statcheck(x)
+statcheck::statcheck(x5)
+x5
+
+###########################################
+## Comparision with JATSdecoder::get.stats
+#########################################
+#install.packages(JATSdecoder)
+## Combine all here used examples
+x<-c(x1,x2,x3,x4,x5)
 x
+length(x)
+# extract results with get.stats()
+a<-JATSdecoder::get.stats(x)
+# detected results
+a$stats
+# extracted classified results
+y<-a$standardStats
+y
+
+## render output with xtable
+xtable::xtable(y)
+
+# all results are detected and adequately processed
