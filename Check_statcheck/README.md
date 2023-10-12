@@ -12,3 +12,6 @@ It is unlikely to detect many or most statistical results reported in the litera
 
 The example test set consists of correctly handable results, potential reports of non-targeted test statistics, plausible individual reporting styles, irregularities and errors that a statistical results spell checker should detect. 
 I conclude, that the capabilities and usefulness of the software are very limited and that it should not be used to detect irregularities in results or as a spell checker for results.
+
+
+R Script to perform the statcheck check: [Script_statcheckIsFlawedByDesign.R](https://github.com/ingmarboeschen/JATSdecoderEvaluation/blob/main/Check_statcheck/Script_statcheckIsFlawedByDesign.R)
