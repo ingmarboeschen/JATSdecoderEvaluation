@@ -1,6 +1,6 @@
 ##################################################################################
 ## Script to reproduce the analysis reported in:
-## statcheck is flawed by design and no valid spell checker (Böschen, I, 2023)
+## statcheck is flawed by design and no valid spell checker (Böschen, I, 2024)
 ## The test was run on statcheck 1.4 (Nuijten, M. B. & Epskamp, S., 2023)
 ############################################################################
 
@@ -26,7 +26,8 @@ x1<-c(
   " \u03A72(12)=3.4, p<.05",
   " Chi^2(12)=3.4, p<.05",
   " chi2(12)=3.4, p<.05",
-  " Q(12)=3.4, p<.01")
+  " Q(12)=3.4, p<.01",
+  " t(12)=.34, n.s.")
 x1
 
 ## Table 1: Example text representations of statistical test results that are checkable with statcheck in rearranged output table
@@ -34,7 +35,6 @@ a<-data.frame(rawInput=paste0('"',x1,'"'),statcheck(x1)[,c(10,2:9,11:12)])
 a
 ## render output with xtable
 #print(xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a),)))),include.rownames=T)
-# manually replace: "$chi$" with "$\chi$"
 
 #####################################################################
 ### false positive chi-square detections in non-standard statistics
@@ -44,7 +44,7 @@ a
 x2<-paste0(" ",c(LETTERS,letters),"(12)=.3, p<.05")
 x2
 a<-statcheck(x2)
-
+a
 ## render output with xtable
 #xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a[,c(10,1:9,11:14)])))))
 
@@ -66,20 +66,23 @@ a<-statcheck(x4)
 a
 
 ## render output with xtable
-xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a[,c(10,1:9,11:14)])))))
+#xtable::xtable(gsub("  *"," ",gsub(".00([^0-9])","\\1",format(as.matrix(a[,c(10,1:9,11:14)])))))
 
 ###################################################
 ## Table 5: General result patterns that statcheck does not recognize nor spell check and a correspoding simple example
 pattern<-c(
+"chi-square test results presented with superscripted 2",
+"chi-square with html-coded superscripted 2",
 "does not allow a calculation of the p-value",
+"p-value only",  
 "contains a report of any other value (e.g. Cohen's d) between the test statistic and the p-value",
 "is supplied with a semicolon as seperator",
 "is supplied without a seperator",
 "contains the report of the degrees of freedom outside brackets",
-"contains an exponent/fraction",
+"contains an exponent or fraction",
 "has badly used seperators/decimals/numbers",
 "has indexed results",
-"has p-, r- or $R^2$-values outside their valid range",
+"has p-, r- or R^2-values outside their valid range",
 "has estimatable p-values by beta and standard error",
 "has a value reported with percent sign",
 "a report of multiple results",
@@ -87,10 +90,14 @@ pattern<-c(
 "has degrees of freedom in squared brackets",
 "has high degrees of freedom with coma as punctuation",
 "has a double space behind the coma",
-"has badly or non compiled operators due to prior PDF to text conversion ")
+"has a space in abbreviation of not significant",
+"has badly or non compiled operator due to PDF to text conversion")
 
 x5<-c(
-  " p=.12 or r=.12, p=.34",
+  " χ²(12)=3.4, p<.05",
+  " χ<sup>2</sup>(12)=3.4, p<.05",
+  " t=.12, p=.34",
+  " p=.12",
   " t(12)=1.2, d=3.4, p=.56",
   " t(12)=1.2; p=.34",
   " t(12)=1.2 p=.34",
@@ -102,36 +109,58 @@ x5<-c(
   " beta=1.2, SE=.34, p<.05",
   " t(12)=1.2, p=5%",
   " all t's(12)>1.2, p's>.05",
-  " t(12)≤1.2, p<=.05",
+  " t(12)≤1.2, p≥.05",
   " t[12]=1.2, p<.05",
   " t(1,234)=5.6, p<.05",
   " t(12)=1.2,  p<.05",
-  " t 1.2, p 5 .34"
+  " t(12)=.34, n. s. ",
+  " t(12) 1.2, p 5 .34"
   )
 
-cbind(substr(pattern,1,61),x5)
+## render output with xtable
+#xtable::xtable(cbind(substr(pattern,1,61),x5))
 
 # Not a single result is detected by statcheck:
 statcheck::statcheck(x5)
 x5
 
-###########################################
-## Comparision with JATSdecoder::get.stats
-#########################################
-#install.packages(JATSdecoder)
+##########################################
+## Table 6: The output of JATSdecoder's function get.stats when applied to the full result string
+
+## Get the JATSdecoder package
+# install.packages("JATSdecoder")
+
 ## Combine all here used examples
 x<-c(x1,x2,x3,x4,x5)
-x
-length(x)
+#write(x,"allResults.txt")
+
+# convert the example of a typical PDF conversion error with 
+# JATSdecoder::letter.convert(x,cermine=TRUE)
+x[length(x)]
+x[length(x)]<-JATSdecoder::letter.convert(x[length(x)],cermine=TRUE)
+x[length(x)]
+
 # extract results with get.stats()
-a<-JATSdecoder::get.stats(x)
+a<-JATSdecoder::get.stats(x,estimateZ=TRUE)
+b<-JATSdecoder::get.stats(x,estimateZ=TRUE,checkP=T)
+sum((b$standardStats)$error,na.rm=T)
+
 # detected results
 a$stats
-# extracted classified results
+# extracted standard results
 y<-a$standardStats
 y
 
-## render output with xtable
-xtable::xtable(y)
+nrow(y) # n detected results 
+length(x) # n input results
 
-# all results are detected and adequately processed
+# n detected p values
+sum(!is.na(y$p))
+# results with no detected p-value
+x[is.na(y$p)]
+# n recalculated p values
+sum(!is.na(y$recalculatedP))
+
+## render output with xtable
+#xtable::xtable(y)
+
