@@ -1,6 +1,6 @@
 ##################################################################################
 ## Script to reproduce the analysis reported in:
-## statcheck is flawed by design and no valid spell checker (Böschen, I, 2024)
+## statcheck is flawed by design and no valid spell checker for statistical results (Böschen, 2024)
 ## The test was run on statcheck 1.4 (Nuijten, M. B. & Epskamp, S., 2023)
 ############################################################################
 
