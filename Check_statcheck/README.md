@@ -1,6 +1,6 @@
 *statcheck* is flawed by design and no valid spell checker.
 ==================================
-Böschen, Ingmar (submitted 2024).
+Böschen, Ingmar (2024).
 
 <ins>*Abstract*</ins>
 The R package *statcheck* is designed to extract statistical test results from text and check the consistency of the reported test statistics and corresponding p-values. 
