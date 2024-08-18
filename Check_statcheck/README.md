@@ -16,3 +16,5 @@ I conclude that the capabilities and usefulness of the \textit{statcheck} softwa
 Future developments should aim to incorporate more flexible algorithms capable of handling a broader variety of reporting styles, such as those provided by *JATSdecoder* and Large Language Models, which show promise in overcoming these limitations but they cannot replace the critical eye of a knowledgeable reader. 
 
 R Script to perform the statcheck check: [Script_statcheckIsFlawedByDesign.R](https://github.com/ingmarboeschen/JATSdecoderEvaluation/blob/main/Check_statcheck/Script_statcheckIsFlawedByDesign.R)
+
+File with example results to check statcheck on [statcheck.io](https://michelenuijten.shinyapps.io/statcheck-web/): [examples4checking_statcheck.docx](https://github.com/ingmarboeschen/JATSdecoderEvaluation/blob/main/Check_statcheck/examples4checking_statcheck.docx)
