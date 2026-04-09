@@ -1,4 +1,4 @@
-*statcheck* is flawed by design and no valid spell checker.
+*statcheck* is flawed by design and no valid spell checker for statistical results.
 ==================================
 Böschen, Ingmar (2024). [https://arxiv.org/abs/2408.07948](https://arxiv.org/abs/2408.07948)
 
